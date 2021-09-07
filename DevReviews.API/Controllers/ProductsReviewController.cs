@@ -3,6 +3,7 @@ using AutoMapper;
 using DevReviews.API.Entities;
 using DevReviews.API.Models;
 using DevReviews.API.Persistence.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevReviews.API.Controllers
@@ -21,6 +22,12 @@ namespace DevReviews.API.Controllers
         }
 
         //GET api/products/1/productreviews/5
+        /// <summary>
+        /// Retorna o review de um produto
+        /// </summary>
+        /// <param name="productId">Identificador do produto</param>
+        /// <param name="id">identificador do review</param>
+        /// <returns>Objeto com review do produto</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int productId, int id)
         {
@@ -37,7 +44,24 @@ namespace DevReviews.API.Controllers
         }
 
         //POST api/products/1/productreviews
+        /// <summary>
+        /// Cadastro de review de um produto
+        /// </summary>
+        /// <remarks>Requisição:
+        /// {
+        ///  "rating": "10,
+        ///  "author": "Matheus Souza",
+        ///  "comments": "Melhor Havaina que ja usei"
+        /// }
+        /// </remarks>
+        /// <param name="productId">Identificador do produto</param>
+        /// <param name="model">Objeto com dados de review</param>
+        /// <returns>Obejto recem-criado</returns>
+        /// <response code="201">Sucesso</response>
+        /// <response code="400">Dados inválidos</response>
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Post(int productId, AddProductReviewInputModel model)
         {
             var productReview = new ProductReview(model.Author, model.Rating, model.Comments, productId);

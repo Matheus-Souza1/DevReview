@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Reflection;
 using DevReviews.API.Persistence;
 using DevReviews.API.Persistence.Repositories;
 using DevReviews.API.Profiles;
@@ -34,7 +37,19 @@ namespace DevReviews.API
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "DevReviews.API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { 
+                    Title = "DevReviews.API",
+                     Version = "v1",
+                     Contact = new OpenApiContact {
+                         Name = "Matheus Souza",
+                         Email = "matheussouzaslv2@gmail.com"
+                     } 
+                     
+                     });
+
+                     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                     c.IncludeXmlComments(xmlPath);
             });
         }
 
