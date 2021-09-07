@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using DevReviews.API.Entities;
 using DevReviews.API.Models;
-using DevReviews.API.Persistence;
+using DevReviews.API.Persistence.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevReviews.API.Controllers
@@ -12,18 +12,18 @@ namespace DevReviews.API.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        private readonly DevReviewsDbContext _dbContext;
+        private readonly IProductRepository _repository;
         private readonly IMapper _mapper;
-        public ProductsController(DevReviewsDbContext dbcontext, IMapper mapper)
+        public ProductsController(IProductRepository repository, IMapper mapper)
         {
-            _dbContext = dbcontext;
+            _repository = repository;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var products = _dbContext.Products;
+            var products = await _repository.GetAllAsync();
 
             var productsViewModel = _mapper.Map<List<ProductViewModel>>(products);
 
@@ -32,9 +32,9 @@ namespace DevReviews.API.Controllers
 
         //GET api/products/{id}
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var product = _dbContext.Products.SingleOrDefault(x => x.Id == id);
+            var product = await _repository.GetDetailsByIdAsync(id);
 
             if (product == null)
             {
@@ -42,31 +42,26 @@ namespace DevReviews.API.Controllers
             }
 
             var productDetails = _mapper.Map<ProductDetailsViewModel>(product);
-            
+
             return Ok(productDetails);
         }
 
         //POST api/products/
         [HttpPost]
-        public IActionResult Post(AddProductInputModel model)
+        public async Task<IActionResult> Post(AddProductInputModel model)
         {
             var product = new Product(model.Title, model.Description, model.Price);
 
-            _dbContext.Products.Add(product);
+            await _repository.AddAsync(product);
 
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, model);
         }
 
         //PUT api/products/{id}
         [HttpPut("{id}")]
-        public IActionResult Put(int id, UpdateProductInputModel model)
+        public async Task<IActionResult> Put(int id, UpdateProductInputModel model)
         {
-            if (model.Description.Length > 50)
-            {
-                return BadRequest();
-            }
-
-            var product = _dbContext.Products.SingleOrDefault(x => x.Id == id);
+            var product = await _repository.GetByIdAsync(id);
 
             if (product == null)
             {
@@ -74,6 +69,7 @@ namespace DevReviews.API.Controllers
             }
 
             product.Update(model.Description, model.Price);
+            await _repository.UpdateAsync(product);
 
             return NoContent();
         }
